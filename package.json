@@ -8,11 +8,16 @@
   },
   "main": "./dist/open-location-code.js",
   "author": "Walter Jerusalinsky",
+  "contributors": [
+    "The Open Location Code Library Authors",
+    "Thibaud Giovannetti"
+  ],
   "scripts": {
-    
+    "test": "mocha -r ts-node/register tests/**/*.test.js"
   },
   "devDependencies": {
-  
+    "chai": "latest",
+    "mocha": "latest"
   },
   "private": false
 }
