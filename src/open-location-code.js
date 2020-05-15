@@ -1,3 +1,7 @@
+const CODE_PRECISION_NORMAL = 10;
+const CODE_PRECISION_EXTRA = 11;
+
+
 // A separator used to break the code into two parts to aid memorability.
 const SEPARATOR_ = '+';
 
@@ -85,8 +89,14 @@ export class CodeArea {
   
 
   constructor(latitudeLo, longitudeLo, latitudeHi, longitudeHi, codeLength) {
-    this.latitudeCenter = Math.min(latitudeLo + (latitudeHi - latitudeLo) / 2, LATITUDE_MAX);
-    this.longitudeCenter = Math.min(longitudeLo + (longitudeHi - longitudeLo) / 2, LONGITUDE_MAX);
+    this.latitudeCenter = Math.min(latitudeLo + (latitudeHi - latitudeLo) / 2, LATITUDE_MAX_);
+    this.longitudeCenter = Math.min(longitudeLo + (longitudeHi - longitudeLo) / 2, LONGITUDE_MAX_);
+    this.latitudeLo=latitudeLo;
+    this.longitudeLo=longitudeLo;
+    this.latitudeHi=latitudeHi;
+    this.longitudeHi=longitudeHi;
+    this.codeLength=codeLength;
+    
   }
 
   getLatitudeHeight() {
@@ -104,6 +114,7 @@ export class CodeArea {
 export default class OpenLocationCode {
 
   constructor(code) {
+    this.code=code;
   }
 
   getCode(){
@@ -344,7 +355,7 @@ export default class OpenLocationCode {
    *     area of the code.
    * @throws {Exception} If the code is not valid.
    */
-  static decode(code): CodeArea {
+  static decode(code){
     // This calculates the values for the pair and grid section separately, using
     // integer arithmetic. Only at the final step are they converted to floating
     // point and combined.

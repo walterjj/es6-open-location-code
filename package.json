@@ -13,10 +13,12 @@
     "Thibaud Giovannetti"
   ],
   "scripts": {
-    "test": "mocha -r ts-node/register tests/**/*.test.js"
+    "test": "mocha tests/**/*.test.js --require esm",
+    "test_validity": "mocha tests/**/validity.test.js --require esm"
   },
   "devDependencies": {
     "chai": "latest",
+    "esm": "^3.2.25",
     "mocha": "latest"
   },
   "private": false

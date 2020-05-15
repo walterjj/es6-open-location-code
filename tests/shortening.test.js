@@ -5,14 +5,9 @@ import dataset from "./data/short-codes";
 
 
 class TestData {
-  public readonly code: string;
-  public readonly referenceLatitude: number;
-  public readonly referenceLongitude: number;
-  public readonly shortCode: string;
-  public readonly testType: string;
-
-  public constructor(parts: Array<any>) {
-    this.code = <string>parts[0];
+ 
+  constructor(parts) {
+    this.code = parts[0];
     this.referenceLatitude = Number.parseFloat(parts[1]);
     this.referenceLongitude = Number.parseFloat(parts[2]);
     this.shortCode = parts[3];
@@ -21,7 +16,7 @@ class TestData {
 }
 
 describe("Shortening Tests", () => {
-  const testDataList: TestData[] = dataset.map(data => new TestData(data));
+  const testDataList = dataset.map(data => new TestData(data));
 
   it("testShortening", () => {
     testDataList.forEach(testData => {

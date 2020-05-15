@@ -4,21 +4,16 @@ import OpenLocationCode from "../src/open-location-code";
 import dataset from "./data/encoding";
 
 class TestData {
-  public readonly latitude: number;
-  public readonly longitude: number;
-  public readonly codeLength: number;
-  public readonly code: string;
-
-  public constructor(parts: Array<any>) {
+  constructor(parts) {
     this.latitude = Number.parseFloat(parts[0]);
     this.longitude = Number.parseFloat(parts[1]);
     this.codeLength = Number.parseFloat(parts[2]);
-    this.code = <string>parts[3];
+    this.code = parts[3];
   }
 }
 
 describe('Encoding Tests', () => {
-  const testDataList: TestData[] = dataset.map(data => new TestData(data));
+  const testDataList= dataset.map(data => new TestData(data));
 
   it('testEncode', () => {
     expect(testDataList.length).to.greaterThan(1);

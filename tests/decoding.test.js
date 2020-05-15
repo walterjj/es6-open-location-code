@@ -3,16 +3,11 @@ import 'mocha';
 import OpenLocationCode from "../src/open-location-code";
 import dataset from "./data/decoding";
 
-class TestData {
-    public readonly code: string;
-    public readonly codeLength: number;
-    public readonly latitudeLo: number;
-    public readonly longitudeLo: number;
-    public readonly latitudeHi: number;
-    public readonly longitudeHi: number;
 
-    public constructor(parts: Array<any>) {
-        this.code = <string>parts[0];
+class TestData {
+ 
+    constructor(parts) {
+        this.code = parts[0];
         this.codeLength = Number.parseFloat(parts[1]);
         this.latitudeLo = Number.parseFloat(parts[2]);
         this.longitudeLo = Number.parseFloat(parts[3]);
@@ -22,7 +17,7 @@ class TestData {
 }
 
 describe('Decoding Tests', () => {
-    const testDataList: TestData[] = dataset.map(data => new TestData(data));
+    const testDataList= dataset.map(data => new TestData(data));
     const precision = 1e-10;
 
     it('testDecode', () => {
