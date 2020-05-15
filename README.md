@@ -1,6 +1,12 @@
 # About
 
-This is the TypeScript implementation of the Open Location Code ported from the JS version :
+This is a ES6 implementation of the Open Location Code ported from the JS version :
+
+Forked from the TypeScript implementation by Jonas Mosimann:
+
+https://github.com/tspoke/typescript-open-location-code/
+
+Original JS version:
 
 https://github.com/google/open-location-code/tree/master/js
 
