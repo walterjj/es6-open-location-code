@@ -1,5 +1,76 @@
-const LATITUDE_MAX = 90;
-const LONGITUDE_MAX = 180;
+// A separator used to break the code into two parts to aid memorability.
+const SEPARATOR_ = '+';
+
+// The number of characters to place before the separator.
+const SEPARATOR_POSITION_ = 8;
+
+// The character used to pad codes.
+const PADDING_CHARACTER_ = '0';
+
+// The character set used to encode the values.
+const CODE_ALPHABET_ = '23456789CFGHJMPQRVWX';
+
+// The base to use to convert numbers to/from.
+const ENCODING_BASE_ = CODE_ALPHABET_.length;
+
+// The maximum value for latitude in degrees.
+const LATITUDE_MAX_ = 90;
+
+// The maximum value for longitude in degrees.
+const LONGITUDE_MAX_ = 180;
+
+// The max number of digits to process in a plus code.
+const MAX_DIGIT_COUNT_ = 15;
+
+// Maximum code length using lat/lng pair encoding. The area of such a
+// code is approximately 13x13 meters (at the equator), and should be suitable
+// for identifying buildings. This excludes prefix and separator characters.
+const PAIR_CODE_LENGTH_ = 10;
+
+// First place value of the pairs (if the last pair value is 1).
+const PAIR_FIRST_PLACE_VALUE_ = Math.pow(
+    ENCODING_BASE_, (PAIR_CODE_LENGTH_ / 2 - 1));
+
+// Inverse of the precision of the pair section of the code.
+const PAIR_PRECISION_ = Math.pow(ENCODING_BASE_, 3);
+
+// The resolution values in degrees for each position in the lat/lng pair
+// encoding. These give the place value of each position, and therefore the
+// dimensions of the resulting area.
+const PAIR_RESOLUTIONS_ = [20.0, 1.0, .05, .0025, .000125];
+
+// Number of digits in the grid precision part of the code.
+const GRID_CODE_LENGTH_ = MAX_DIGIT_COUNT_ - PAIR_CODE_LENGTH_;
+
+// Number of columns in the grid refinement method.
+const GRID_COLUMNS_ = 4;
+
+// Number of rows in the grid refinement method.
+const GRID_ROWS_ = 5;
+
+// First place value of the latitude grid (if the last place is 1).
+const GRID_LAT_FIRST_PLACE_VALUE_ = Math.pow(
+    GRID_ROWS_, (GRID_CODE_LENGTH_ - 1));
+
+// First place value of the longitude grid (if the last place is 1).
+const GRID_LNG_FIRST_PLACE_VALUE_ = Math.pow(
+    GRID_COLUMNS_, (GRID_CODE_LENGTH_ - 1));
+
+// Multiply latitude by this much to make it a multiple of the finest
+// precision.
+const FINAL_LAT_PRECISION_ = PAIR_PRECISION_ *
+    Math.pow(GRID_ROWS_, (MAX_DIGIT_COUNT_ - PAIR_CODE_LENGTH_));
+
+// Multiply longitude by this much to make it a multiple of the finest
+// precision.
+const FINAL_LNG_PRECISION_ = PAIR_PRECISION_ *
+    Math.pow(GRID_COLUMNS_, (MAX_DIGIT_COUNT_ - PAIR_CODE_LENGTH_));
+
+// Minimum length of a code that can be shortened.
+const MIN_TRIMMABLE_CODE_LEN_ = 6;
+
+
+
 
 /**
  * Coordinates of a decoded Open Location Code.
@@ -11,25 +82,18 @@ const LONGITUDE_MAX = 180;
  * @constructor
  */
 export class CodeArea {
-  /**
-   * The latitude of the center in degrees.
-   */
-  public latitudeCenter: number;
-  /**
-   * The longitude of the center in degrees.
-   */
-  public longitudeCenter: number;
+  
 
-  constructor(public latitudeLo, public longitudeLo, public latitudeHi, public longitudeHi, public codeLength) {
+  constructor(latitudeLo, longitudeLo, latitudeHi, longitudeHi, codeLength) {
     this.latitudeCenter = Math.min(latitudeLo + (latitudeHi - latitudeLo) / 2, LATITUDE_MAX);
     this.longitudeCenter = Math.min(longitudeLo + (longitudeHi - longitudeLo) / 2, LONGITUDE_MAX);
   }
 
-  public getLatitudeHeight(): number {
+  getLatitudeHeight() {
     return this.latitudeHi - this.latitudeLo;
   }
 
-  public getLongitudeWidth(): number {
+  getLongitudeWidth() {
     return this.longitudeHi - this.longitudeLo;
   }
 }
@@ -39,10 +103,10 @@ export class CodeArea {
  */
 export default class OpenLocationCode {
 
-  public constructor(public code: string) {
+  constructor(code) {
   }
 
-  public getCode(): string {
+  getCode(){
     return this.code;
   }
 
@@ -50,78 +114,9 @@ export default class OpenLocationCode {
    * Returns whether this {@link OpenLocationCode} is a padded Open Location Code, meaning that it
    * contains less than 8 valid digits.
    */
-  public isPadded(): boolean {
+  isPadded() {
     return this.code.indexOf(OpenLocationCode.PADDING_CHARACTER_) >= 0;
   }
-
-  private static readonly CODE_PRECISION_NORMAL = 10;
-  private static readonly CODE_PRECISION_EXTRA = 11;
-  private static readonly MAX_DIGIT_COUNT_ = 15;
-
-  // A separator used to break the code into two parts to aid memorability.
-  private static readonly SEPARATOR_ = "+";
-
-  // The number of characters to place before the separator.
-  private static readonly SEPARATOR_POSITION_ = 8;
-
-  // The character used to pad codes.
-  private static readonly PADDING_CHARACTER_ = "0";
-
-  // The character set used to encode the values.
-  private static readonly CODE_ALPHABET_ = "23456789CFGHJMPQRVWX";
-
-  // The base to use to convert numbers to/from.
-  private static readonly ENCODING_BASE_ = OpenLocationCode.CODE_ALPHABET_.length;
-
-  // The maximum value for latitude in degrees.
-  static readonly LATITUDE_MAX_ = LATITUDE_MAX;
-
-  // The maximum value for longitude in degrees.
-  static readonly LONGITUDE_MAX_ = LONGITUDE_MAX;
-
-  // Maximum code length using lat/lng pair encoding. The area of such a
-  // code is approximately 13x13 meters (at the equator), and should be suitable
-  // for identifying buildings. This excludes prefix and separator characters.
-  private static readonly PAIR_CODE_LENGTH_ = 10;
-
-  // The resolution values in degrees for each position in the lat/lng pair
-  // encoding. These give the place value of each position, and therefore the
-  // dimensions of the resulting area.
-  private static readonly PAIR_RESOLUTIONS_ = [20.0, 1.0, .05, .0025, .000125];
-
-  // First place value of the pairs (if the last pair value is 1).
-  private static readonly PAIR_FIRST_PLACE_VALUE_ = Math.pow(OpenLocationCode.ENCODING_BASE_, (OpenLocationCode.PAIR_CODE_LENGTH_ / 2 - 1));
-
-  // Inverse of the precision of the pair section of the code.
-  private static readonly PAIR_PRECISION_ = Math.pow(OpenLocationCode.ENCODING_BASE_, 3);
-
-  // Number of digits in the grid precision part of the code.
-  private static readonly GRID_CODE_LENGTH_ = OpenLocationCode.MAX_DIGIT_COUNT_ - OpenLocationCode.PAIR_CODE_LENGTH_;
-
-  // Number of columns in the grid refinement method.
-  private static readonly GRID_COLUMNS_ = 4;
-
-  // Number of rows in the grid refinement method.
-  private static readonly GRID_ROWS_ = 5;
-
-  // First place value of the latitude grid (if the last place is 1).
-  private static readonly GRID_LAT_FIRST_PLACE_VALUE_ = Math.pow(OpenLocationCode.GRID_ROWS_, (OpenLocationCode.GRID_CODE_LENGTH_ - 1));
-
-  // First place value of the longitude grid (if the last place is 1).
-  private static readonly GRID_LNG_FIRST_PLACE_VALUE_ = Math.pow(OpenLocationCode.GRID_COLUMNS_, (OpenLocationCode.GRID_CODE_LENGTH_ - 1));
-
-  // Multiply latitude by this much to make it a multiple of the finest
-  // precision.
-  private static readonly FINAL_LAT_PRECISION_ = OpenLocationCode.PAIR_PRECISION_ *
-      Math.pow(OpenLocationCode.GRID_ROWS_, (OpenLocationCode.MAX_DIGIT_COUNT_ - OpenLocationCode.PAIR_CODE_LENGTH_));
-
-  // Multiply longitude by this much to make it a multiple of the finest
-  // precision.
-  private static readonly FINAL_LNG_PRECISION_ = OpenLocationCode.PAIR_PRECISION_ *
-      Math.pow(OpenLocationCode.GRID_COLUMNS_, (OpenLocationCode.MAX_DIGIT_COUNT_ - OpenLocationCode.PAIR_CODE_LENGTH_));
-
-  // Minimum length of a code that can be shortened.
-  private static readonly MIN_TRIMMABLE_CODE_LEN_ = 6;
 
 
   /**
@@ -134,7 +129,7 @@ export default class OpenLocationCode {
    * @param {string} code The string to check.
    * @return {boolean} True if the string is a valid code.
    */
-  public static isValid(code: string): boolean {
+  static isValid(code) {
     if (!code) {
       return false;
     }
@@ -199,7 +194,7 @@ export default class OpenLocationCode {
    * Returns whether the provided Open Location Code is a padded Open Location Code, meaning that it
    * contains less than 8 valid digits.
    */
-  public static isPadded(code: string): boolean {
+  static isPadded(code) {
     return new OpenLocationCode(code).isPadded();
   }
 
@@ -210,7 +205,7 @@ export default class OpenLocationCode {
    * @return {boolean} True if the string can be produced by removing four or
    *     more characters from the start of a valid code.
    */
-  public static isShort(code: string): boolean {
+  static isShort(code) {
     if (!OpenLocationCode.isValid(code)) {
       return false;
     }
@@ -224,7 +219,7 @@ export default class OpenLocationCode {
    * @param {string} code The string to check.
    * @return {boolean} True if the code represents a valid latitude and longitude combination.
    */
-  public static isFull(code: string): boolean {
+  static isFull(code) {
     if (!OpenLocationCode.isValid(code)) {
       return false;
     }
@@ -248,7 +243,7 @@ export default class OpenLocationCode {
     return true;
   };
 
-  public contains(latitude: number, longitude: number): boolean {
+  contains(latitude, longitude) {
     const codeArea = OpenLocationCode.decode(this.getCode());
     return codeArea.latitudeLo <= latitude
       && latitude < codeArea.latitudeHi
@@ -270,7 +265,7 @@ export default class OpenLocationCode {
    * @return {string} The code.
    * @throws {Exception} if any of the input values are not numbers.
    */
-  public static encode(latitude: number, longitude: number, codeLength: number = OpenLocationCode.CODE_PRECISION_NORMAL): string {
+  static encode(latitude, longitude, codeLength = OpenLocationCode.CODE_PRECISION_NORMAL){
     if (codeLength < 2 || (codeLength < OpenLocationCode.PAIR_CODE_LENGTH_ && codeLength % 2 === 1)) {
       throw new Error("IllegalArgumentException: Invalid Open Location Code length");
     }
@@ -349,7 +344,7 @@ export default class OpenLocationCode {
    *     area of the code.
    * @throws {Exception} If the code is not valid.
    */
-  public static decode(code: string): CodeArea {
+  static decode(code): CodeArea {
     // This calculates the values for the pair and grid section separately, using
     // integer arithmetic. Only at the final step are they converted to floating
     // point and combined.
@@ -433,7 +428,7 @@ export default class OpenLocationCode {
    * @throws {Exception} if the short code is not valid, or the reference
    *     position values are not numbers.
    */
-  public static recoverNearest(shortCode: string, latitude: number, longitude: number): string {
+  static recoverNearest(shortCode, latitude, longitude){
     if (!OpenLocationCode.isShort(shortCode)) {
       if (OpenLocationCode.isFull(shortCode)) {
         return shortCode;
@@ -492,7 +487,7 @@ export default class OpenLocationCode {
    * @throws {Exception} if the passed code is not a valid full code or the
    *     reference location values are not numbers.
    */
-  public static shorten(code: string, latitude: number, longitude: number): string {
+  static shorten(code, latitude, longitude){
     if (!OpenLocationCode.isFull(code)) {
       throw new Error("ValueError: Passed code is not valid and full: " + code);
     }
@@ -529,7 +524,7 @@ export default class OpenLocationCode {
    * @param {number} latitude
    * @return {number} The latitude value clipped to be in the range.
    */
-  private static clipLatitude(latitude: number): number {
+  static clipLatitude(latitude) {
     return Math.min(90, Math.max(-90, latitude));
   };
 
@@ -541,7 +536,7 @@ export default class OpenLocationCode {
    * @param {number} codeLength
    * @return {number} The latitude precision in degrees.
    */
-  private static computeLatitudePrecision(codeLength: number): number {
+  static computeLatitudePrecision(codeLength) {
     if (codeLength <= 10) {
       return Math.pow(20, Math.floor(codeLength / -2 + 2));
     }
@@ -554,7 +549,7 @@ export default class OpenLocationCode {
    * @param {number} longitude
    * @return {number} Normalized into the range -180 to 180.
    */
-  private static normalizeLongitude(longitude: number): number {
+  static normalizeLongitude(longitude) {
     let longitudeOutput = longitude;
     while (longitudeOutput < -180) {
       longitudeOutput = longitudeOutput + 360;
