@@ -22,3 +22,4 @@ OpenLocationCode.recoverNearest(SHORT_CODE, LATITUDE, LONGITUDE)
 ```
 
 For more examples, please refer to the JS repository.
+[test]
